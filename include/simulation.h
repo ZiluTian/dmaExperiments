@@ -17,8 +17,8 @@ class Message {
         Message(const std::vector<double>& value) {
             this->content = value;
         }
-        std::vector<double> getContent() const {
-            return content;
+        const std::vector<double>* getContent() const {
+            return &content;
         }
 };
 
@@ -56,8 +56,6 @@ public:
         if (this->mailbox.size() > 0) {
             Message removedMessage = this->mailbox.front();
             this->mailbox.pop_front();
-            // Message removedMessage = this->mailbox[0];
-            // this->mailbox.erase(this->mailbox.begin());
             return removedMessage;
         } else {
             return std::nullopt;; // Return null in case mailbox is empty
@@ -81,8 +79,8 @@ public:
                 std::cout << "Key: " << key << std::endl;
                 for (const auto& message : messages) {
                     std::cout << "Message ";
-                    std::vector<double> retrievedContent = message.getContent();
-                    for (const auto& element : retrievedContent) {
+                    const std::vector<double>* retrievedContent = message.getContent();
+                    for (const auto& element : *retrievedContent) {
                         std::cout << element << " ";
                     }
                 }
@@ -124,8 +122,8 @@ public:
             std::cout << "Key: " << key << std::endl;
             for (const auto& message : messages) {
                 std::cout << "Message ";
-                std::vector<double> retrievedContent = message.getContent();
-                for (const auto& element : retrievedContent) {
+                const std::vector<double>* retrievedContent = message.getContent();
+                for (const auto& element : *retrievedContent) {
                     std::cout << element << " ";
                 }
             }

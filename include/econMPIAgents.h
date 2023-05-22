@@ -150,20 +150,18 @@ public:
     }
 
     virtual int step() {
-        int receivedMessages = 0;
+        // int receivedMessages = 0;
         std::optional<Message> m = receive();
         while (m.has_value()) {
-            std::vector<double> retrievedContent = m.value().getContent();
-            double stockPrice = retrievedContent.at(0);
-            double dividend = retrievedContent.at(1);
-            std::vector<MarketState> markets = {};
-            retrievedContent.erase(retrievedContent.begin(), retrievedContent.begin()+1);
-            for (const auto & c: retrievedContent) {
-                markets.push_back(static_cast<MarketState>(static_cast<int>(c)));
-            }
-            inform(stockPrice, dividend, markets);
+            const std::vector<double>* retrievedContent = m.value().getContent();
+            std::vector<MarketState> markets = {
+                static_cast<MarketState>(static_cast<int>((*retrievedContent)[2])), 
+                 static_cast<MarketState>(static_cast<int>((*retrievedContent)[3])), 
+                  static_cast<MarketState>(static_cast<int>((*retrievedContent)[4]))};
+
+            inform((*retrievedContent)[0], (*retrievedContent)[1], markets);
             m = receive();
-            receivedMessages += 1;
+            // receivedMessages += 1;
         }
         // std::cout << "Trader agent runs! receive msg " << receivedMessages << std::endl;
 
@@ -179,8 +177,8 @@ int MPIMarket::step() {
     int receivedMessages = 0;
 
     while (m.has_value()) {
-        std::vector<double> retrievedContent = m.value().getContent();
-        Action act = static_cast<Action>(static_cast<int>(retrievedContent.at(0)));
+        const std::vector<double>* retrievedContent = m.value().getContent();
+        Action act = static_cast<Action>(static_cast<int>((*retrievedContent)[0]));
         traderAction(act);
         m = receive();
         receivedMessages += 1; 

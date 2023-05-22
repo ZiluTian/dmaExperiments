@@ -6,8 +6,8 @@ TEST_CASE("MessageTests - content") {
     std::vector<double> msg1 = {1, 2, 3, 4};
     Message m1(msg1);
     std::vector<double> v2 = {1, 2, 3, 4};
-    CHECK(m1.getContent() == msg1);
-    CHECK(m1.getContent() == v2);
+    CHECK(*(m1.getContent()) == msg1);
+    CHECK(*(m1.getContent()) == v2);
 }
 
 TEST_CASE("AgentTests - addToMailbox/receive") {
@@ -26,8 +26,8 @@ TEST_CASE("AgentTests - addToMailbox/receive") {
     int totalMessages = 0;
     std::optional<Message> m = A1.receive();
     while (m.has_value()) {
-        std::vector<double> retrievedContent = m.value().getContent();
-        CHECK(retrievedContent == msg1);
+        const std::vector<double>* retrievedContent = m.value().getContent();
+        CHECK(*retrievedContent == msg1);
         m = A1.receive();
         totalMessages +=1 ;
     }
@@ -52,7 +52,7 @@ TEST_CASE("AgentTests - send/collect") {
         CHECK(expectedRids.count(key) == 1);
         const std::deque<Message>& messages = pair.second;
         for (const auto& message : messages) {
-            CHECK(message.getContent() == msg1);
+            CHECK(*message.getContent() == msg1);
             totalMessages += 1;
         }
     }
@@ -96,7 +96,6 @@ TEST_CASE("SimulateTests - deliver messages") {
     int totalMessages = 0;
     std::optional<Message> m = A2->receive();
     while (m.has_value()) {
-        std::vector<double> retrievedContent = m.value().getContent();
         m = A2->receive();
         totalMessages +=1 ;
     }
