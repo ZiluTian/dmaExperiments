@@ -18,7 +18,7 @@ TEST_CASE("AgentTests - addToMailbox/receive") {
     int expectedTotalMessages = 5;
     int i = 0;
     while (i < expectedTotalMessages) {
-        std::vector<Message> messages = {m1};
+        std::deque<Message> messages = {m1};
         A1.addToMailbox(messages);
         i += 1;
     }
@@ -43,14 +43,14 @@ TEST_CASE("AgentTests - send/collect") {
         A1.send(i, m1);
     }
 
-    std::unordered_map<int, std::vector<Message>> collectedMessages = A1.outbox;
+    std::unordered_map<int, std::deque<Message>> collectedMessages = A1.outbox;
     std::set<int> expectedRids = {0,1,2,3,4};
 
     int totalMessages = 0;
     for (const auto& pair : collectedMessages) {
         int key = pair.first;
         CHECK(expectedRids.count(key) == 1);
-        const std::vector<Message>& messages = pair.second;
+        const std::deque<Message>& messages = pair.second;
         for (const auto& message : messages) {
             CHECK(message.getContent() == msg1);
             totalMessages += 1;

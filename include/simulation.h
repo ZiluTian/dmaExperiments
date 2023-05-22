@@ -5,6 +5,7 @@
 #include <optional>
 #include <unordered_map>
 #include <vector>
+#include <deque>
 #include <climits>
 #include <chrono>
 
@@ -24,11 +25,11 @@ class Message {
 // Class declaration
 class Agent {
 private:
-    std::vector<Message> mailbox;
+    std::deque<Message> mailbox;
 
 public:
     int id;
-    std::unordered_map<int, std::vector<Message>> outbox;
+    std::unordered_map<int, std::deque<Message>> outbox;
 
     // Constructor
     Agent(int number) {
@@ -40,21 +41,23 @@ public:
         if (it != this->outbox.end()) {
             it->second.push_back(message);
         } else {
-            std::vector<Message> msgs = {message};
+            std::deque<Message> msgs = {message};
             this->outbox.emplace(rid, msgs);
         }
         // std::cout << id << " sends a message to " << rid << std::endl;
         // printOutbox();
     }
     
-    void addToMailbox(std::vector<Message>& messages) {
+    void addToMailbox(std::deque<Message>& messages) {
         this->mailbox.insert(this->mailbox.end(), messages.begin(), messages.end());
     }
 
     std::optional<Message> receive() {
         if (this->mailbox.size() > 0) {
-            Message removedMessage = this->mailbox[0];
-            this->mailbox.erase(this->mailbox.begin());
+            Message removedMessage = this->mailbox.front();
+            this->mailbox.pop_front();
+            // Message removedMessage = this->mailbox[0];
+            // this->mailbox.erase(this->mailbox.begin());
             return removedMessage;
         } else {
             return std::nullopt;; // Return null in case mailbox is empty
@@ -73,7 +76,7 @@ public:
         if (this->outbox.size() > 0) {
             for (const auto& pair : this->outbox) {
                 int key = pair.first;
-                const std::vector<Message>& messages = pair.second;
+                const std::deque<Message>& messages = pair.second;
 
                 std::cout << "Key: " << key << std::endl;
                 for (const auto& message : messages) {
@@ -92,7 +95,7 @@ public:
 
 class Simulate {
 private:
-    std::unordered_map<int, std::vector<Message>> collectedMessages;
+    std::unordered_map<int, std::deque<Message>> collectedMessages;
     int currentRound = 0;
 
 public:
@@ -117,7 +120,7 @@ public:
         std::cout << "Collected messages in round " << currentRound << std::endl;
         for (const auto& pair : this->collectedMessages) {
             int key = pair.first;
-            const std::vector<Message>& messages = pair.second;
+            const std::deque<Message>& messages = pair.second;
             std::cout << "Key: " << key << std::endl;
             for (const auto& message : messages) {
                 std::cout << "Message ";
