@@ -26,11 +26,11 @@ public:
         stock = new Stock(0.1 / totalTraders);
     }
 
-    void traderAction(Action action) {
-        if (action == BUY) {
+    void traderAction(int action) {
+        if (action == 1) {
             buyOrders += 1;
         } 
-        if (action == SELL) {
+        if (action == 2) {
             sellOrders += 1;
         }
     }
@@ -42,7 +42,7 @@ class MPITrader: public Agent {
 private:
     WealthManagement* wealth; 
     MPIMarket* market;
-    Action traderAction = NO_ACTION;
+    int traderAction = 0;
     int currentRule = 1;
 
     // rule, strength
@@ -50,58 +50,58 @@ private:
     std::mt19937 gen; 
     std::uniform_int_distribution<int> distribution;
 
-    Action eval(int rule, double stockPrice, std::vector<MarketState> marketState, double cash, double shares) {
-        Action action = NO_ACTION; 
+    int eval(int rule, double stockPrice, std::vector<int> marketState, double cash, double shares) {
+        int action = 0; 
         switch (rule) {
             case 1: 
                 if (marketState.at(0)==INCREASE && stockPrice < cash){
-                    action = BUY;
+                    action = 1;
                 } else if (marketState.at(0)==2 && shares >= 1) {
-                    action = SELL;
+                    action = 2;
                 } else {
-                    action = NO_ACTION;
+                    action = 0;
                 }
                 break;
             case 2:
                 if (marketState.at(1) == INCREASE && shares >= 1){
-                    action = SELL;
+                    action = 2;
                 } else if (stockPrice < cash && marketState.at(2) == DECREASE){
-                    action = BUY;
+                    action = 1;
                 } else {
-                    action = NO_ACTION;
+                    action = 0;
                 }
                 break; 
             case 3:
                 if (marketState.at(1) == INCREASE && stockPrice < cash){
-                    action = BUY;
+                    action = 1;
                 } else if (marketState.at(1) == INCREASE && shares >= 1){
-                    action = SELL;
+                    action = 2;
                 } else {
-                    action = NO_ACTION;
+                    action = 0;
                 }
                 break;
             case 4:
                 if (distribution(gen) < 3){
                     if (stockPrice < cash) {
-                        action = BUY;
+                        action = 1;
                     } else {
-                        action = NO_ACTION;
+                        action = 0;
                     }
                 } else {
                     if (shares >= 1) {
-                        action = SELL;
+                        action = 2;
                     } else {
-                        action = NO_ACTION;
+                        action = 0;
                     }
                 }    
                 break;
             case 5:
                 if (marketState.at(2) == INCREASE && shares >= 1){
-                    action = SELL;
+                    action = 2;
                 } else if (marketState.at(2) == DECREASE && stockPrice < cash){
-                    action = BUY;
+                    action = 1;
                 } else {
-                    action = NO_ACTION;
+                    action = 0;
                 }
                 break;
             default:
@@ -120,7 +120,7 @@ public:
         this->wealth = new WealthManagement(1000, 0.001);
     }
 
-    void inform(double stockPrice, double dividend, std::vector<MarketState> market) {
+    void inform(double stockPrice, double dividend, std::vector<int> market) {
         this->wealth->addDividends(dividend);
         double updatedWealth = this->wealth->estimateWealth(stockPrice);
         // increase the strength if wealth has increased
@@ -138,9 +138,9 @@ public:
             }
         }
         this->traderAction = eval(currentRule, stockPrice, market, this->wealth->cash, this->wealth->shares);
-        if (traderAction == BUY) {
+        if (traderAction == 1) {
             this->wealth->buyStock(stockPrice);
-        } else if (traderAction == SELL) {
+        } else if (traderAction == 2) {
             this->wealth->sellStock(stockPrice);
         }
     }
@@ -154,10 +154,10 @@ public:
         std::optional<Message> m = receive();
         while (m.has_value()) {
             const std::vector<double>* retrievedContent = m.value().getContent();
-            std::vector<MarketState> markets = {
-                static_cast<MarketState>(static_cast<int>((*retrievedContent)[2])), 
-                 static_cast<MarketState>(static_cast<int>((*retrievedContent)[3])), 
-                  static_cast<MarketState>(static_cast<int>((*retrievedContent)[4]))};
+            std::vector<int> markets = {
+                static_cast<int>((*retrievedContent)[2]), 
+                 static_cast<int>((*retrievedContent)[3]), 
+                 static_cast<int>((*retrievedContent)[4])};
 
             inform((*retrievedContent)[0], (*retrievedContent)[1], markets);
             m = receive();
@@ -178,7 +178,7 @@ int MPIMarket::step() {
 
     while (m.has_value()) {
         const std::vector<double>* retrievedContent = m.value().getContent();
-        Action act = static_cast<Action>(static_cast<int>((*retrievedContent)[0]));
+        int act = static_cast<int>((*retrievedContent)[0]);
         traderAction(act);
         m = receive();
         receivedMessages += 1; 
@@ -190,7 +190,7 @@ int MPIMarket::step() {
     this->stockPrice = this->stock->priceAdjustment(buyOrders, sellOrders);
     this->dividend = this->stock->getDividend();
     std::vector<double> msg = {this->stockPrice, this->dividend};
-    std::vector<MarketState> stockInfo = stock->getStockStates(stockPrice, dividend);
+    std::vector<int> stockInfo = stock->getStockStates(stockPrice, dividend);
     for (const auto & c: stockInfo) {
         msg.push_back(static_cast<double>(static_cast<int>(c)));
     }

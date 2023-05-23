@@ -5,13 +5,14 @@
 #include <numeric>
 #include <vector>
 
-enum MarketState {
-    INCREASE, DECREASE, NO_CHANGE
-};
+const int INCREASE = 1;
+const int DECREASE = 2;
+const int NO_CHANGE = 0;
 
-enum Action {
-    BUY, SELL, NO_ACTION
-};
+const int BUY = 1;
+const int SELL = 2;
+const int NO_ACTION = 3;
+
 
 class Stock {
 private:
@@ -22,9 +23,9 @@ private:
     double last10Avg = 0;
     double last50Avg = 0;
 
-    MarketState dividendState = NO_CHANGE;
-    MarketState last10AvgState = NO_CHANGE;
-    MarketState last50AvgState = NO_CHANGE;
+    int dividendState = NO_CHANGE;
+    int last10AvgState = NO_CHANGE;
+    int last50AvgState = NO_CHANGE;
     
     // Mersenne twister PRNG, initialized with seed from previous random device instance
     std::mt19937 gen; 
@@ -73,7 +74,7 @@ public:
         }
     }
 
-    std::vector<MarketState> getStockStates(double price, double dividend){
+    std::vector<int> getStockStates(double price, double dividend){
         this->currentPrice = price;
         this->prices.push_back(price);
         if (dividend > this->lastDividend) {
@@ -85,7 +86,7 @@ public:
         }
         this->lastDividend = dividend; 
         updateAvg();
-        std::vector<MarketState> states = {dividendState, last10AvgState, last50AvgState};
+        std::vector<int> states = {dividendState, last10AvgState, last50AvgState};
         return states;
     }
 
