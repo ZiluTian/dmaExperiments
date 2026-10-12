@@ -1,4 +1,13 @@
-This project needs C++17
+# dmaExperiments
+
+C++17 experiments comparing communication strategies for a parallel economic (agent-based) simulation: **DMA** (shared-memory, direct memory access) versus **MPI** (message passing).
+
+- `include/econDMAAgents.h` — agent simulation over shared memory with DMA
+- `include/econMPIAgents.h` — the same workload over MPI
+- `src/main.cpp` — driver
+- `test/` — doctest-based tests
+
+Requires C++17.
 
 # install C++17 on CentOS7
 ```
@@ -12,7 +21,6 @@ scl enable devtoolset-9 bash
 ```make test```
 
 # Run econ simulation
-```
-make econSim
+```make econSim
 ./econSim
 ```
